@@ -1,0 +1,28 @@
+{
+  "name": "samsungtv-media-helper",
+  "version": "1.0.0",
+  "description": " Node App that prepares a video or a series of videos to be viewable (and subtitled) in a Samsung TV through DLNA",
+  "main": "index.ts",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuisMayo/samsungtv-media-helper.git"
+  },
+  "author": "Luis Mayo",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/LuisMayo/samsungtv-media-helper/issues"
+  },
+  "homepage": "https://github.com/LuisMayo/samsungtv-media-helper#readme",
+  "dependencies": {
+    "@types/fluent-ffmpeg": "^2.1.21",
+    "fluent-ffmpeg": "^2.1.2",
+    "typescript": "^5.1.3"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  }
+}
