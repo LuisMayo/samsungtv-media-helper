@@ -13,7 +13,7 @@
             ],
             "program": "${workspaceFolder}\\index.ts",
             "runtimeArgs": ["-r", "ts-node/register"],
-            "args": ["badTest.webm"],
+            "args": ["test.mp4"],
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]

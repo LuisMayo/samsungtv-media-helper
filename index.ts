@@ -1,10 +1,8 @@
 import Ffmpeg, { FfprobeData } from "fluent-ffmpeg";
-import {
-  acceptedAudioCodecs,
-  acceptedVideoCodecs,
-  desiredVideoCodecs,
-} from "./constants";
+import { acceptedAudioCodecs, acceptedVideoCodecs } from "./constants";
 
+import fileDialog from "popups-file-dialog";
+import si from "systeminformation";
 import util from "util";
 
 const ffprobe: (url: string) => Promise<FfprobeData> = util.promisify(
@@ -15,19 +13,22 @@ const ffprobe: (url: string) => Promise<FfprobeData> = util.promisify(
 
 // }
 
-function determineValidCodec(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    Ffmpeg().getAvailableEncoders((err, encoders) => {
-      const codec = desiredVideoCodecs.find(
-        (encoder) => encoders[encoder] != null
-      );
-      if (codec) {
-        resolve(codec);
-      } else {
-        reject("No codec found");
-      }
-    });
-  });
+/**
+ * Determines the best h264 codec based on current Graphic card
+ * @returns FFMPEG's codec name
+ */
+async function determineValidCodec(): Promise<string> {
+  const graphicArray = await si.graphics();
+  const vendor = graphicArray.controllers[0].vendor.toLowerCase();
+  if (vendor.includes("nvidia")) {
+    return "h264_nvenc";
+  } else if (vendor.includes("amd")) {
+    return "h264_amf";
+  } else if (vendor.includes("intel")) {
+    return "h264_qsv";
+  } else {
+    return "libx264";
+  }
 }
 
 async function runFile(filePath: string) {
@@ -47,19 +48,39 @@ async function runFile(filePath: string) {
       acceptedAudioCodecs.has(stream.codec_name?.toLowerCase() ?? "")
     );
 
-  if (!properAudioCodec || !properVideoCodec) {
+  if (!properAudioCodec || !properVideoCodec || !hasSubtitles) {
     const desiredVideoCodec = properVideoCodec
       ? "copy"
       : await determineValidCodec();
-    console.log(`Something is missing, fixing it, selected video codec ${desiredVideoCodec}`);
+    const desiredAudioCodec = properAudioCodec ? "copy" : "ac3";
+    console.log(
+      `Something is missing\n` +
+        `  Selected video codec: ${desiredVideoCodec}\n` +
+        `  Selected audio codec: ${desiredAudioCodec}\n`
+    );
     const ffmpeg = Ffmpeg()
-	.addInputOption("-hwaccel auto")
-	.addInput(filePath)
-	.videoCodec(desiredVideoCodec)
-	.save('test.mp4');
+      .addInput(filePath)
+      .addInputOption("-hwaccel auto")
+      .videoCodec(desiredVideoCodec)
+      .audioCodec(desiredAudioCodec)
+      .save(filePath.substring(0, filePath.lastIndexOf('.')) + '-fix.mkv');
   } else {
     console.log("Input file was already perfect as it was :)");
   }
 }
 
-runFile(process.argv[2]).then(() => {}).catch(console.error);
+async function main() {
+  const files: string[] = await fileDialog.openFile({
+    allowMultipleSelects: true,
+    filterPatterns: ["*.avi", "*.mkv", "*.mp4", "*.webm", "*.wmv", "*.flv"],
+    filterPatternsDescription: "Video files",
+    startPath: ".",
+    title: "Select one/several files",
+  });
+  files.forEach(runFile);
+}
+// runFile(process.argv[2])
+//   .then(() => {})
+//   .catch(console.error);
+
+main().then().catch(console.error);

@@ -1,3 +1,4 @@
+// https://developer.samsung.com/smarttv/develop/specifications/media-specifications/2020-tv-video-specifications.html
 export const acceptedVideoCodecs = new Set([
   "h264",
   "hevc",
@@ -60,10 +61,3 @@ export const acceptedAudioCodecs = new Set([
   "ralf",
   "sipr",
 ]);
-
-export const desiredVideoCodecs = [
-  "h264_nvenc",
-  "h264_qsv",
-  "h264_amf",
-  "libx264",
-];
