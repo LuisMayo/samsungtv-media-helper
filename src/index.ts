@@ -19,7 +19,7 @@ const ffprobe: (url: string) => Promise<FfprobeData> = util.promisify(
  */
 async function determineValidCodec(): Promise<string> {
   const graphicArray = await si.graphics();
-  const vendor = graphicArray.controllers[0].vendor.toLowerCase();
+  const vendor = graphicArray?.controllers?.[0]?.vendor?.toLowerCase() ?? '';
   if (vendor.includes("nvidia")) {
     return "h264_nvenc";
   } else if (vendor.includes("amd")) {
