@@ -63,20 +63,22 @@ async function runFile(filePath: string) {
       .addInputOption("-hwaccel auto")
       .videoCodec(desiredVideoCodec)
       .audioCodec(desiredAudioCodec)
-      .save(filePath.substring(0, filePath.lastIndexOf('.')) + '-fix.mkv');
+      .save(filePath.substring(0, filePath.lastIndexOf(".")) + "-fix.mkv");
   } else {
     console.log("Input file was already perfect as it was :)");
   }
 }
 
 async function main() {
-  const files: string[] = await fileDialog.openFile({
-    allowMultipleSelects: true,
-    filterPatterns: ["*.avi", "*.mkv", "*.mp4", "*.webm", "*.wmv", "*.flv"],
-    filterPatternsDescription: "Video files",
-    startPath: ".",
-    title: "Select one/several files",
-  });
+  const files: string[] = process.argv[2]
+    ? [process.argv[2]]
+    : await fileDialog.openFile({
+        allowMultipleSelects: true,
+        filterPatterns: ["*.avi", "*.mkv", "*.mp4", "*.webm", "*.wmv", "*.flv"],
+        filterPatternsDescription: "Video files",
+        startPath: ".",
+        title: "Select one/several files",
+      });
   files.forEach(runFile);
 }
 // runFile(process.argv[2])
