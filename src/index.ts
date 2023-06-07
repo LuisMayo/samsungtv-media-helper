@@ -2,6 +2,7 @@ import Ffmpeg, { FfprobeData } from "fluent-ffmpeg";
 import { acceptedAudioCodecs, acceptedVideoCodecs } from "./constants";
 
 import fileDialog from "popups-file-dialog";
+import { findSubtitles } from "./find-subtitles";
 import si from "systeminformation";
 import util from "util";
 
@@ -19,7 +20,7 @@ const ffprobe: (url: string) => Promise<FfprobeData> = util.promisify(
  */
 async function determineValidCodec(): Promise<string> {
   const graphicArray = await si.graphics();
-  const vendor = graphicArray?.controllers?.[0]?.vendor?.toLowerCase() ?? '';
+  const vendor = graphicArray?.controllers?.[0]?.vendor?.toLowerCase() ?? "";
   if (vendor.includes("nvidia")) {
     return "h264_nvenc";
   } else if (vendor.includes("amd")) {
@@ -53,17 +54,23 @@ async function runFile(filePath: string) {
       ? "copy"
       : await determineValidCodec();
     const desiredAudioCodec = properAudioCodec ? "copy" : "ac3";
+    const desiredSubfile = hasSubtitles ? null : await findSubtitles(filePath);
     console.log(
       `Something is missing\n` +
         `  Selected video codec: ${desiredVideoCodec}\n` +
-        `  Selected audio codec: ${desiredAudioCodec}\n`
+        `  Selected audio codec: ${desiredAudioCodec}\n` +
+        `  Selected subs file: ${desiredSubfile ?? "none"}`
     );
-    const ffmpeg = Ffmpeg()
+    let ffmpeg = Ffmpeg({ logger: console })
       .addInput(filePath)
       .addInputOption("-hwaccel auto")
       .videoCodec(desiredVideoCodec)
       .audioCodec(desiredAudioCodec)
-      .save(filePath.substring(0, filePath.lastIndexOf(".")) + "-fix.mkv");
+      .outputOption("-map 0");
+    if (desiredSubfile) {
+      ffmpeg = ffmpeg.addInput(desiredSubfile).outputOptions(["-map 1", "-scodec srt"]);
+    }
+    ffmpeg.save(filePath.substring(0, filePath.lastIndexOf(".")) + "-fix.mkv");
   } else {
     console.log("Input file was already perfect as it was :)");
   }
