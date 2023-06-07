@@ -11,7 +11,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\index.ts",
+            "program": "${workspaceFolder}\\/src/index.ts",
             "runtimeArgs": ["-r", "ts-node/register"],
             "args": ["test.mp4"],
             "outFiles": [

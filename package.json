@@ -4,7 +4,7 @@
   "description": " Node App that prepares a video or a series of videos to be viewable (and subtitled) in a Samsung TV through DLNA",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node index.ts",
+    "start": "ts-node ./src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,6 +21,7 @@
     "@types/fluent-ffmpeg": "^2.1.21",
     "fluent-ffmpeg": "^2.1.2",
     "popups-file-dialog": "^1.6.1",
+    "subtitler": "^2.7.0",
     "systeminformation": "^5.17.17",
     "typescript": "^5.1.3"
   },
