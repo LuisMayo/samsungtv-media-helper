@@ -2,7 +2,7 @@
   "name": "samsungtv-media-helper",
   "version": "1.0.0",
   "description": " Node App that prepares a video or a series of videos to be viewable (and subtitled) in a Samsung TV through DLNA",
-  "main": "index.ts",
+  "main": "./src/index.ts",
   "scripts": {
     "start": "ts-node ./src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
