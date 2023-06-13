@@ -64,14 +64,15 @@ async function runFile(filePath: string) {
     let ffmpeg = Ffmpeg({ logger: console, stdoutLines: 20 })
       .addInput(filePath)
       .addInputOption("-hwaccel auto")
+      .addInputOption("-fflags +genpts")
       .videoCodec(desiredVideoCodec)
       .audioCodec(desiredAudioCodec)
-      // .outputOption("-map 0");
+      .outputOption("-map 0");
     if (desiredSubfile) {
-      ffmpeg = ffmpeg.addInput(desiredSubfile).outputOptions(["-scodec srt"]);
+      ffmpeg = ffmpeg.addInput(desiredSubfile).outputOptions(["-scodec srt", "-map 1"]);
     }
     // If you don't assign here again the program instantly closes?
-    ffmpeg = ffmpeg.save(filePath.substring(0, filePath.lastIndexOf(".")) + "-fix.mkv");
+    ffmpeg = ffmpeg.save(filePath.substring(0, filePath.lastIndexOf(".")) + ".mkv");
   } else {
     console.log("Input file was already perfect as it was :)");
   }
