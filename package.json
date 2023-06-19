@@ -4,7 +4,7 @@
   "description": " Node App that prepares a video or a series of videos to be viewable (and subtitled) in a Samsung TV through DLNA",
   "main": "./src/index.ts",
   "scripts": {
-    "start": "ts-node ./src/index.ts",
+    "start": "ts-node ./src/backend/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

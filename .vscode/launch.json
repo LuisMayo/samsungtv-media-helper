@@ -1,18 +1,11 @@
 {
   "configurations": [
     {
-      "name": "Launch Program 2",
-      "program": "${workspaceFolder}/build/index.js",
-      "request": "launch",
-      "skipFiles": ["<node_internals>/**"],
-      "type": "node"
-    },
-    {
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
       "runtimeArgs": ["-r", "ts-node/register"],
-      "args": ["${workspaceFolder}/src/index.ts"]
+      "args": ["${workspaceFolder}/src/backend/index.ts"]
     }
   ]
 }
