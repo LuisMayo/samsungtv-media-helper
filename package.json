@@ -5,7 +5,15 @@
   "main": "./src/index.ts",
   "scripts": {
     "start": "ts-node ./src/index.ts",
+    "build": "rimraf ./build && tsc --build && pkg .",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": "./build/index.js",
+  "pkg": {
+    "assets": [
+      "/node_modules/subtitler/lib/**/*.*",
+      "/node_modules/subtitler/lib"
+    ]
   },
   "repository": {
     "type": "git",
@@ -26,6 +34,8 @@
     "typescript": "^5.1.3"
   },
   "devDependencies": {
+    "pkg": "^5.8.1",
+    "rimraf": "^5.0.1",
     "ts-node": "^10.9.1"
   }
 }
