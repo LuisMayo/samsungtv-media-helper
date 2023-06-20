@@ -33,6 +33,8 @@ async function determineValidCodec(): Promise<string> {
 }
 
 async function runFile(filePath: string) {
+  console.log(`Processing ${filePath}`);
+  const [_a, path, name, extension] = filePath.match(/(.*[\/\\])?(.+)\.([a-zA-Z]+)/) ?? [filePath, filePath, '.mkv'];
   const info = await ffprobe(filePath);
   const hasSubtitles = info.streams.some(
     (val) => val.codec_type === "subtitle"
@@ -71,8 +73,8 @@ async function runFile(filePath: string) {
     if (desiredSubfile) {
       ffmpeg = ffmpeg.addInput(desiredSubfile).outputOptions(["-scodec srt", "-map 1"]);
     }
-    // If you don't assign here again the program instantly closes?
-    ffmpeg = ffmpeg.save(filePath.substring(0, filePath.lastIndexOf(".")) + ".mkv");
+    const desiredFilePath = extension === 'mkv' ? `${path}${name}-fix.mkv` : `${path}${name}.mkv`;
+    ffmpeg = ffmpeg.save(desiredFilePath);
   } else {
     console.log("Input file was already perfect as it was :)");
   }
@@ -88,7 +90,13 @@ async function main() {
         startPath: ".",
         title: "Select one/several files",
       });
-  files.forEach(runFile);
+  for (const file of files) {
+    try {
+      await runFile(file);
+    } catch (e) {
+      console.error(`Error while processing ${file}:\n${e}`);
+    }
+  }
 }
 // runFile(process.argv[2])
 //   .then(() => {})
