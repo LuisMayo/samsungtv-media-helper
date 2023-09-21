@@ -14,6 +14,7 @@ export const acceptedVideoCodecs = new Set([
   "flv1",
   "vp6",
   "vp8",
+  "vp9",
   "av1",
   "rv30",
   "rv40",
