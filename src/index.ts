@@ -5,7 +5,6 @@ import fileDialog from "popups-file-dialog";
 import { findSubtitles } from "./find-subtitles";
 import si from "systeminformation";
 import util from "util";
-import { Webview } from "webview-nodejs";
 
 const ffprobe: (url: string) => Promise<FfprobeData> = util.promisify(
   Ffmpeg.ffprobe
@@ -34,6 +33,8 @@ async function determineValidCodec(): Promise<string> {
 }
 
 async function runFile(filePath: string) {
+  console.log(`Processing ${filePath}`);
+  const [_a, path, name, extension] = filePath.match(/(.*[\/\\])?(.+)\.([a-zA-Z]+)/) ?? [filePath, filePath, '.mkv'];
   const info = await ffprobe(filePath);
   const hasSubtitles = info.streams.some(
     (val) => val.codec_type === "subtitle"
@@ -70,45 +71,35 @@ async function runFile(filePath: string) {
       .audioCodec(desiredAudioCodec)
       .outputOption("-map 0");
     if (desiredSubfile) {
-      ffmpeg = ffmpeg
-        .addInput(desiredSubfile)
-        .outputOptions(["-scodec srt", "-map 1"]);
+      ffmpeg = ffmpeg.addInput(desiredSubfile).outputOptions(["-scodec srt", "-map 1"]);
     }
-    // If you don't assign here again the program instantly closes?
-    ffmpeg = ffmpeg.save(
-      filePath.substring(0, filePath.lastIndexOf(".")) + ".mkv"
-    );
+    const desiredFilePath = extension === 'mkv' ? `${path}${name}-fix.mkv` : `${path}${name}.mkv`;
+    ffmpeg = ffmpeg.save(desiredFilePath);
   } else {
     console.log("Input file was already perfect as it was :)");
   }
 }
 
 async function main() {
-  let w = new Webview();
-  w.title("Hello World");
-  w.size(800, 600);
-  w.bind('openFile', () => {
-    return getFilesFromUser();
-  })
-  w.html("<html><body><button onclick=\"openFile()\"></button></body></html>");
-  w.show();
-  const files: string[] = await getFilesFromUser();
-  files.forEach(runFile);
+  const files: string[] = process.argv[2]
+    ? [process.argv[2]]
+    : await fileDialog.openFile({
+        allowMultipleSelects: true,
+        filterPatterns: ["*.avi", "*.mkv", "*.mp4", "*.webm", "*.wmv", "*.flv"],
+        filterPatternsDescription: "Video files",
+        startPath: ".",
+        title: "Select one/several files",
+      });
+  for (const file of files) {
+    try {
+      await runFile(file);
+    } catch (e) {
+      console.error(`Error while processing ${file}:\n${e}`);
+    }
+  }
 }
 // runFile(process.argv[2])
 //   .then(() => {})
 //   .catch(console.error);
 
 main().then().catch(console.error);
-async function getFilesFromUser() {
-  return process.argv[2]
-    ? [process.argv[2]]
-    : await fileDialog.openFile({
-      allowMultipleSelects: true,
-      filterPatterns: ["*.avi", "*.mkv", "*.mp4", "*.webm", "*.wmv", "*.flv"],
-      filterPatternsDescription: "Video files",
-      startPath: ".",
-      title: "Select one/several files",
-    });
-}
-
