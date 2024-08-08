@@ -1,10 +1,10 @@
 import Ffmpeg, { FfprobeData } from "fluent-ffmpeg";
 import { acceptedAudioCodecs, acceptedVideoCodecs } from "./constants";
 
-import fileDialog from "popups-file-dialog";
 import { findSubtitles } from "./find-subtitles";
 import si from "systeminformation";
 import util from "util";
+import * as fs from 'fs/promises';
 
 const ffprobe: (url: string) => Promise<FfprobeData> = util.promisify(
   Ffmpeg.ffprobe
@@ -51,12 +51,12 @@ async function runFile(filePath: string) {
       acceptedAudioCodecs.has(stream.codec_name?.toLowerCase() ?? "")
     );
 
-  if (!properAudioCodec || !properVideoCodec || !hasSubtitles) {
+  const desiredSubfile = hasSubtitles ? null : await findSubtitles(filePath);
+  if (!properAudioCodec || !properVideoCodec || desiredSubfile) {
     const desiredVideoCodec = properVideoCodec
       ? "copy"
       : await determineValidCodec();
     const desiredAudioCodec = properAudioCodec ? "copy" : "ac3";
-    const desiredSubfile = hasSubtitles ? null : await findSubtitles(filePath);
     console.log(
       `Something is missing\n` +
         `  Selected video codec: ${desiredVideoCodec}\n` +
@@ -75,21 +75,31 @@ async function runFile(filePath: string) {
     }
     const desiredFilePath = extension === 'mkv' ? `${path}${name}-fix.mkv` : `${path}${name}.mkv`;
     ffmpeg = ffmpeg.save(desiredFilePath);
+    ffmpeg.on('progress', console.log);
+    await new Promise((resolve, reject) => {
+      ffmpeg.on('end', resolve);
+      ffmpeg.on('error', reject);
+    });
   } else {
     console.log("Input file was already perfect as it was :)");
   }
 }
 
 async function main() {
-  const files: string[] = process.argv[2]
-    ? [process.argv[2]]
-    : await fileDialog.openFile({
-        allowMultipleSelects: true,
-        filterPatterns: ["*.avi", "*.mkv", "*.mp4", "*.webm", "*.wmv", "*.flv"],
-        filterPatternsDescription: "Video files",
-        startPath: ".",
-        title: "Select one/several files",
-      });
+  const path: string = process.argv[2];
+  const pathInfo = await fs.stat(path);
+  let files: string[];
+  if (!pathInfo.isDirectory()) {
+    files = [path];
+  } else {
+    const directoryOpen = await  fs.opendir(path);
+    files = [];
+    let child = directoryOpen.readSync();
+    while (child) {
+      files.push(`${path}/${child.name}`);
+      child = directoryOpen.readSync();
+    }
+  }
   for (const file of files) {
     try {
       await runFile(file);
